@@ -116,7 +116,6 @@ td a:hover{text-decoration:underline}
 .login input{width:100%;height:48px;border:1px solid var(--border);border-radius:10px;padding:0 14px;font:inherit;font-size:15px;margin:24px 0 10px;outline:none;background:var(--surface)}
 .login input:focus{border-color:var(--text)}
 .btn{width:100%;height:48px;border:0;border-radius:10px;background:var(--text);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
-.demo{background:#FFF8E6;color:#7A5A00;font-size:12px;text-align:center;padding:8px 16px;border-bottom:1px solid #F3E6C0}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);background:var(--text);color:#fff;padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:20}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .hide{display:none!important}
@@ -137,7 +136,6 @@ td a:hover{text-decoration:underline}
   <path d="M126 51H176L133 76Z" fill="#F9B92E"/><circle cx="90" cy="76" r="12" fill="#333"/>
   <path d="M126 76H151A25 25 0 0 1 176 101V178H151A25 25 0 0 1 126 153Z" fill="#D6173F"/></g></defs></svg>
 
-<div id="demoBar" class="demo hide"></div>
 
 <div id="loginView" class="login hide">
   <svg viewBox="0 0 176 178"><use href="#qfc"/></svg>
@@ -204,7 +202,6 @@ td a:hover{text-decoration:underline}
 <script>
 const CONFIG = window.QFC_CONFIG, Q = window.QFC_Q, SHORT = window.QFC_SHORT;
 const params = new URLSearchParams(location.search);
-const DEMO = !CONFIG.endpoint || params.has('demo');
 const ls = { get:k=>{try{return localStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
 let L = ls.get('qfc_admin_lang') || 'kk';
 const T = o => (o && typeof o==='object' && !Array.isArray(o)) ? (o[L] ?? o.kk) : o;
@@ -233,7 +230,6 @@ const I = {
   sDone:{kk:"Өтті",ru:"Прошёл"}, sPart:{kk:"Аяқтамады",ru:"Не завершил"}, sDup:{kk:"Қайталау",ru:"Повтор"},
   dActive:{kk:"{d} дейін",ru:"до {d}"}, dUsed:{kk:"Пайдаланды",ru:"Использована"}, dExp:{kk:"Мерзімі өтті",ru:"Истекла"},
   empty:{kk:"Әзірге дерек жоқ",ru:"Пока нет данных"}, bad:{kk:"Құпия сөз қате",ru:"Неверный пароль"},
-  demo:{kk:"Демо режим — config.js ішінде endpoint қойылмаған, мысал деректер көрсетілуде",ru:"Демо-режим — endpoint в config.js не указан, показаны примерные данные"},
   upd:{kk:"Жаңартылды",ru:"Обновлено"}, contact:{kk:"Танысу (аты/нөмір)",ru:"Знакомство (имя/номер)"}
 };
 const CH = {
@@ -256,8 +252,7 @@ const discState = r => r.status!=='completed' ? null : r.used==='yes' ? 'used' :
 
 let ROWS = [];
 async function load(){
-  if(DEMO){ if(!ROWS.length) ROWS = demoRows(); }
-  else {
+  {
     const u = CONFIG.endpoint + (CONFIG.endpoint.includes('?')?'&':'?') + new URLSearchParams({action:'data', key:ls.get('qfc_admin_key')||''});
     const d = await (await fetch(u)).json();
     if(!d.ok){ ls.del('qfc_admin_key'); return showLogin(true); }
@@ -375,7 +370,7 @@ $('#csv').onclick = () => {
 
 function applyLang(){
   document.querySelectorAll('[data-t]').forEach(el=>el.textContent=T(I[el.dataset.t]));
-  $('#pSearch').placeholder=T(I.search); $('#langBtn').textContent=L==='kk'?'РУС':'ҚАЗ'; $('#demoBar').textContent=T(I.demo);
+  $('#pSearch').placeholder=T(I.search); $('#langBtn').textContent=L==='kk'?'РУС':'ҚАЗ';
   document.documentElement.lang=L;
 }
 document.querySelectorAll('nav button').forEach(b=> b.onclick=()=>{
@@ -395,38 +390,9 @@ async function start(){
   try{ await load(); }catch(e){ showLogin(true); }
 }
 applyLang();
-if(DEMO){ $('#demoBar').classList.remove('hide'); start(); }
-else if(ls.get('qfc_admin_key')) start(); else showLogin();
-setInterval(()=>{ if(!DEMO && !$('#appView').classList.contains('hide') && document.visibilityState==='visible') load().catch(()=>{}); }, 60000);
+if(ls.get('qfc_admin_key')) start(); else showLogin();
+setInterval(()=>{ if(!$('#appView').classList.contains('hide') && document.visibilityState==='visible') load().catch(()=>{}); }, 60000);
 
-function demoRows(){
-  const names=['Айгерім','Нұрлан','Дана','Ерлан','Аружан','Мадина','Азамат','Әсел','Данияр','Жансая','Ильяс','Камила','Тимур','Алия','Бекзат','Сабина','Арман','Томирис','Руслан','Гүлназ'];
-  let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647; const pick=a=>a[Math.floor(rnd()*a.length)];
-  const stories=['Стрипс суық келді, 40 минут күттім','Кассир тапсырысты шатастырды, соус бермеді','Бургер тым майлы болды','Телефонды ұзақ көтермеді, 3 рет шалдым','Фри жұмсақ болып келді','Порция кішірейіп кеткен сияқты'];
-  const ideas=['Түнгі уақытта жұмыс істесе','Ащы қанаттар қосу керек','Студенттерге жеңілдік','Тезірек беріңдер, дәмі керемет','Бизнес-ланч керек','Балалар мәзірі болса отбасымен келер едім','Дәмі KFC-тен жақсы, бірақ кезек ұзақ'];
-  const rows=[];
-  for(let i=0;i<64;i++){
-    const A={_name:''}, path=[]; let q=Q.find(x=>!x.when||x.when(A));
-    while(q){ path.push(q.id);
-      if(q.type==='single') A[q.id]=pick(q.o)[0];
-      else if(q.type==='multi') A[q.id]=[...new Set(Array.from({length:1+Math.floor(rnd()*2)},()=>pick(q.o)[0]))];
-      else if(q.type==='rating') A[q.id]=pick([2,3,4,4,5,5,5]);
-      else if(q.type==='nps') A[q.id]=pick([3,5,6,7,8,8,9,9,10,10]);
-      else if(q.type==='text') A[q.id]=rnd()<.6?(q.id.startsWith('pain')?pick(stories):pick(ideas)):undefined;
-      q=Q.slice(Q.indexOf(q)+1).find(x=>!x.when||x.when(A)); }
-    const completed=rnd()<.74, cut=completed?path.length:Math.floor(rnd()*path.length), keep=path.slice(0,cut);
-    const t=new Date(Date.now()-rnd()*13*864e5);
-    const r={ session:'demo'+i, status:completed?'completed':(cut?'in_progress':'started'), started_at:t.toISOString(), updated_at:new Date(t.getTime()+150e3).toISOString(),
-      name:pick(names), phone:'770'+String(10000000+Math.floor(rnd()*89999999)), step_no:cut, last_step:completed?'age':(path[cut]||'contact'),
-      seconds:90+Math.floor(rnd()*180), pin:completed?String(1000+Math.floor(rnd()*9000)):'', expires:completed?new Date(t.getTime()+30*864e5).toISOString():'',
-      used:completed&&rnd()<.35?'yes':'', used_at:'' };
-    keep.forEach(id=>{ const v=A[id]; r[id]=v===undefined?'':(Array.isArray(v)?v.join(', '):v); });
-    if(r.alt==='other') r.alt_other=pick(['Burger King','Үйде','Магнум кафе','Шаурма']);
-    if(r.used) r.used_at=r.updated_at;
-    rows.push(r);
-  }
-  return rows;
-}
 </script>
 </body>
 </html>

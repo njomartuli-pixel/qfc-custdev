@@ -57,8 +57,6 @@ label.f{display:block;font-size:13px;font-weight:500;color:var(--text-2);margin-
 .big{font-size:44px;font-weight:700;letter-spacing:-1.5px;color:var(--ok);padding:0 20px 4px;line-height:1}
 .confirm{display:flex;gap:8px}
 .confirm .btn{margin-top:12px}
-.demo{margin-top:28px;font-size:12px;color:var(--text-3);line-height:1.7}
-.demo code{font-family:inherit;color:var(--text-2);font-weight:600;cursor:pointer}
 .hide{display:none!important}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);background:var(--text);color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transition:.25s;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
@@ -97,15 +95,14 @@ label.f{display:block;font-size:13px;font-weight:500;color:var(--text-2);margin-
     <input class="input" id="ph" type="tel" inputmode="numeric" autocomplete="off" placeholder="+7 (7__) ___-__-__">
     <button class="btn" id="check" data-t="check"></button>
     <div id="res"></div>
-    <div class="demo hide" id="demo"></div>
   </section>
 </div>
 <div class="toast" id="toast"></div>
 
 <script src="config.js"></script>
+<script src="phone.js"></script>
 <script>
 const CONFIG = window.QFC_CONFIG;
-const DEMO = !CONFIG.endpoint;
 const ls = { get:k=>{try{return localStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
 let L = ls.get('qfc_kassa_lang') || 'kk';
 const T = o => o[L] ?? o.kk;
@@ -127,12 +124,11 @@ const I = {
   done:{kk:"Белгіленді ✓",ru:"Отмечено ✓"}, newc:{kk:"Келесі клиент",ru:"Следующий клиент"},
   out:{kk:"Шығу",ru:"Выйти"}, bad:{kk:"Құпия сөз қате",ru:"Неверный пароль"}, err:{kk:"Байланыс қатесі, қайталап көріңіз",ru:"Ошибка связи, попробуйте снова"},
   short:{kk:"Нөмірді толық енгізіңіз",ru:"Введите номер полностью"}, fill:{kk:"Аты мен құпия сөзді толтырыңыз",ru:"Заполните имя и пароль"},
-  demo:{kk:"Демо режим (config.js-те endpoint жоқ). Сынақ нөмірлері:",ru:"Демо-режим (нет endpoint в config.js). Тестовые номера:"}
+  noapi:{kk:"Сайт Google Sheets-ке қосылмаған (config.js). Әкімшіге хабарласыңыз.",ru:"Сайт не подключён к Google Sheets (config.js). Обратитесь к администратору."}
 };
 const $ = s => document.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const norm = v => { let d=String(v||'').replace(/\D/g,''); if(d.length===11&&d[0]==='8') d='7'+d.slice(1); if(d.length===10) d='7'+d; return d; };
-const fmtPhone = d => { d=norm(d).slice(1); let s='+7'; if(d.length) s+=' ('+d.slice(0,3); if(d.length>=3) s+=')'; if(d.length>3) s+=' '+d.slice(3,6); if(d.length>6) s+='-'+d.slice(6,8); if(d.length>8) s+='-'+d.slice(8,10); return s; };
+const fmtPhone = v => QFCPhone.pretty(v);
 const fmtDate = (v,t) => { if(!v) return '—'; const d=new Date(v); if(isNaN(d)) return '—'; const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+(t?', '+p(d.getHours())+':'+p(d.getMinutes()):''); };
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),1800); }
 const ico = {
@@ -141,32 +137,21 @@ const ico = {
   clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>'
 };
 
-/* ---------- API (немесе демо) ---------- */
-const DEMO_DB = {
-  '77011234567':{found:true,name:'Айгерім',phone:'77011234567',pin:'4821',expires:new Date(Date.now()+20*864e5).toISOString(),used:false,state:'active'},
-  '77029998877':{found:true,name:'Ерлан',phone:'77029998877',pin:'6848',expires:new Date(Date.now()+12*864e5).toISOString(),used:true,used_at:new Date(Date.now()-2*864e5).toISOString(),used_by:'Дана · Абай филиалы',state:'used'},
-  '77055554433':{found:true,name:'Мадина',phone:'77055554433',pin:'1937',expires:new Date(Date.now()-3*864e5).toISOString(),used:false,state:'expired'},
-  '77071112233':{found:false,partial:true}
-};
+/* ---------- API ---------- */
 async function api(p){
-  if(DEMO){
-    await new Promise(r=>setTimeout(r,250));
-    if(p.action==='lookup') return Object.assign({ok:true,found:false}, DEMO_DB[p.phone]||{});
-    if(p.action==='redeem'){ const r=DEMO_DB[p.phone]; r.used=true; r.state='used'; r.used_at=new Date().toISOString(); r.used_by=p.by; return {ok:true}; }
-  }
   const u = CONFIG.endpoint + (CONFIG.endpoint.includes('?')?'&':'?') + new URLSearchParams(Object.assign({key:ls.get('qfc_kassa_key')||''}, p));
   return (await fetch(u)).json();
 }
 
 /* ---------- check ---------- */
 const ph = $('#ph');
-ph.addEventListener('input', ()=>{ const d=norm(ph.value); ph.value = d.length>1 ? fmtPhone(d) : (d?'+7 ':''); });
-ph.addEventListener('focus', ()=>{ if(!ph.value) ph.value='+7 '; });
+const mask = QFCPhone.attach(ph);
 ph.addEventListener('keydown', e=>{ if(e.key==='Enter') $('#check').click(); });
 
 $('#check').onclick = async () => {
-  const phone = norm(ph.value);
-  if(phone.length!==11) return toast(T(I.short));
+  if(!CONFIG.endpoint) return toast(T(I.noapi));
+  const phone = QFCPhone.full(ph.value);
+  if(!phone) return toast(T(I.short));
   const b=$('#check'); b.disabled=true;
   try{
     const r = await api({action:'lookup', phone});
@@ -206,7 +191,7 @@ function render(r, phone){
         toast(res.ok ? T(I.done) : res.error);
         const fresh = await api({action:'lookup', phone}); render(fresh, phone);
         $('#res .result').insertAdjacentHTML('beforeend', `<div class="foot"><button class="btn ghost" id="nextc">${T(I.newc)}</button></div>`);
-        $('#nextc').onclick = () => { $('#res').innerHTML=''; ph.value=''; ph.focus(); };
+        $('#nextc').onclick = () => { $('#res').innerHTML=''; mask.clear(); ph.focus(); };
       }catch(e){ toast(T(I.err)); render(r, phone); }
     };
   };
@@ -216,22 +201,26 @@ function render(r, phone){
 function applyLang(){
   document.querySelectorAll('[data-t]').forEach(el=>el.textContent=T(I[el.dataset.t]));
   $('#lang').textContent = L==='kk'?'РУС':'ҚАЗ'; $('#out').textContent=T(I.out);
-  $('#demo').innerHTML = T(I.demo)+'<br>'+Object.keys(DEMO_DB).map(k=>`<code data-p="${k}">${fmtPhone(k)}</code>`).join(' · ');
-  document.querySelectorAll('#demo code').forEach(c=>c.onclick=()=>{ ph.value=fmtPhone(c.dataset.p); $('#check').click(); });
 }
 function showLogin(){ $('#main').classList.add('hide'); $('#out').classList.add('hide'); $('#login').classList.remove('hide'); $('#who').textContent=''; $('#cName').value=ls.get('qfc_kassa_name')||''; }
 function showMain(){ $('#login').classList.add('hide'); $('#main').classList.remove('hide'); $('#out').classList.remove('hide');
-  $('#who').textContent = ls.get('qfc_kassa_name') ? '· '+ls.get('qfc_kassa_name') : ''; $('#demo').classList.toggle('hide',!DEMO); }
+  $('#who').textContent = ls.get('qfc_kassa_name') ? '· '+ls.get('qfc_kassa_name') : ''; }
 $('#lBtn').onclick = () => {
   const n=$('#cName').value.trim(), k=$('#cKey').value.trim();
-  if(!n || (!k && !DEMO)) return toast(T(I.fill));
-  ls.set('qfc_kassa_name', n); ls.set('qfc_kassa_key', k); showMain();
+  if(!n || !k) return toast(T(I.fill));
+  ls.set('qfc_kassa_name', n); ls.set('qfc_kassa_key', k);
+  // құпия сөзді бірден тексереміз
+  const btn=$('#lBtn'); btn.disabled=true;
+  api({action:'lookup', phone:'70000000000'}).then(r=>{
+    if(r && r.ok===false && r.error==='unauthorized'){ ls.del('qfc_kassa_key'); toast(T(I.bad)); }
+    else showMain();
+  }).catch(()=>toast(T(I.err))).finally(()=>{ btn.disabled=false; });
 };
 $('#cKey').onkeydown = e => { if(e.key==='Enter') $('#lBtn').click(); };
 $('#out').onclick = () => { ls.del('qfc_kassa_key'); $('#res').innerHTML=''; showLogin(); };
 $('#lang').onclick = () => { L=L==='kk'?'ru':'kk'; ls.set('qfc_kassa_lang',L); applyLang(); $('#res').innerHTML=''; };
 applyLang();
-(ls.get('qfc_kassa_name') && (ls.get('qfc_kassa_key') || DEMO)) ? showMain() : showLogin();
+(ls.get('qfc_kassa_name') && ls.get('qfc_kassa_key')) ? showMain() : showLogin();
 </script>
 </body>
 </html>

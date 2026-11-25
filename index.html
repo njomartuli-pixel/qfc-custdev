@@ -37,6 +37,7 @@
 </svg>
 
 <script src="config.js"></script>
+<script src="phone.js"></script>
 <script src="questions.js"></script>
 <script>
 const CONFIG = window.QFC_CONFIG, Q = window.QFC_Q;
@@ -101,9 +102,7 @@ const qById = id => Q.find(q => q.id === id);
 function nextQ(fromId){ let i = fromId ? Q.findIndex(q=>q.id===fromId)+1 : 0; for(; i<Q.length; i++) if(applies(Q[i])) return Q[i]; return null; }
 
 /* ---------------- phone ---------------- */
-function normPhone(v){ let d=(v||'').replace(/\D/g,''); if(d.length===11 && d[0]==='8') d='7'+d.slice(1); if(d.length===10) d='7'+d; return d; }
-function fmtPhone(d){ d=normPhone(d).slice(1); let s='+7';
-  if(d.length) s+=' ('+d.slice(0,3); if(d.length>=3) s+=')'; if(d.length>3) s+=' '+d.slice(3,6); if(d.length>6) s+='-'+d.slice(6,8); if(d.length>8) s+='-'+d.slice(8,10); return s; }
+const fmtPhone = v => QFCPhone.pretty(v);
 const fmtDate = ts => { const d=new Date(ts); return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); };
 
 /* ---------------- API ---------------- */
@@ -166,9 +165,9 @@ function renderContact(){
     <div class="actions"><button class="btn" id="nx">${T(UI.next)} <span>→</span></button></div>
   </section>`, ()=>{
     const nm=document.getElementById('nm'), ph=document.getElementById('ph'), cs=document.getElementById('cs'), nx=document.getElementById('nx');
-    ph.oninput=()=>{ const d=normPhone(ph.value); ph.value = d.length>1 ? fmtPhone(d) : '+7 '; };
+    QFCPhone.attach(ph);
     nx.onclick = async ()=>{
-      const name=nm.value.trim(), phone=normPhone(ph.value);
+      const name=nm.value.trim(), phone=QFCPhone.full(ph.value);
       nm.classList.remove('err'); ph.classList.remove('err');
       if(name.length<2){ nm.classList.add('err'); nm.focus(); return toast(T(UI.errName)); }
       if(!/^7[0-9]{10}$/.test(phone)){ ph.classList.add('err'); ph.focus(); return toast(T(UI.errPhone)); }
