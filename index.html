@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QFC — Пікіріңді айт, 10% жеңілдік ал</title>
+<meta name="description" content="3 минуттық сауалнама — QFC-тен 10% жеңілдік">
+<meta name="theme-color" content="#FAF6EA">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="geo"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i></div>
+
+<div class="app">
+  <div class="top">
+    <div class="brand"><svg viewBox="0 0 176 178"><use href="#qfc"/></svg>QFC</div>
+    <div class="lang"><button data-l="kk">ҚАЗ</button><button data-l="ru">РУС</button></div>
+  </div>
+  <div class="progress" id="prog"><b></b></div>
+  <main class="stage" id="stage"></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <g id="qfc">
+      <path d="M0 0H96A30 30 0 0 1 126 30V51H22A22 22 0 0 1 0 29Z" fill="#D6173F"/>
+      <path d="M25 51H126V153A25 25 0 0 1 101 178H0V76A25 25 0 0 1 25 51Z" fill="#EFE8D2"/>
+      <path class="beak" d="M126 51H176L133 76Z" fill="#F9B92E"/>
+      <circle class="eye" cx="90" cy="76" r="12" fill="#333"/>
+      <path d="M126 76H151A25 25 0 0 1 176 101V178H151A25 25 0 0 1 126 153Z" fill="#D6173F"/>
+    </g>
+  </defs>
+</svg>
+
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script>
+const CONFIG = window.QFC_CONFIG, Q = window.QFC_Q;
+
+/* safe storage (Instagram in-app браузерінде бұғатталуы мүмкін) */
+const mem = {};
+const store = {
+  get(k){ try{ return localStorage.getItem(k) }catch(e){ return mem[k] ?? null } },
+  set(k,v){ try{ localStorage.setItem(k,v) }catch(e){ mem[k]=v } },
+  del(k){ try{ localStorage.removeItem(k) }catch(e){ delete mem[k] } }
+};
+
+/* ---------------- i18n ---------------- */
+let L = store.get('qfc_lang') || 'kk';
+const T = (o) => (o && typeof o === 'object' && !Array.isArray(o)) ? (o[L] ?? o.kk) : o;
+const UI = {
+  badge:{kk:"Тек сен үшін · −10%",ru:"Только для тебя · −10%"},
+  h1:{kk:"Пікіріңді айт —<br><em>10% жеңілдік</em> ал",ru:"Поделись мнением —<br>получи <em>скидку 10%</em>"},
+  sub:{kk:"QFC-ті жақсартуға көмектес. Сұрақтар сенің жауаптарыңа қарай өзгереді — әр адамға өз сауалнамасы.",
+       ru:"Помоги сделать QFC лучше. Вопросы подстраиваются под твои ответы — у каждого свой опрос."},
+  m1:{kk:"⏱ 3 минут",ru:"⏱ 3 минуты"}, m2:{kk:"📞 Промокодсыз",ru:"📞 Без промокода"}, m3:{kk:"🎁 30 күн жарамды",ru:"🎁 Действует 30 дней"},
+  start:{kk:"Бастау",ru:"Начать"}, resume:{kk:"Жалғастыру",ru:"Продолжить"},
+  meetH:{kk:"Танысайық 👋",ru:"Давай знакомиться 👋"},
+  meetP:{kk:"Жеңілдік сенің телефон нөміріңе бекітіледі — промокод енгізудің қажеті жоқ.",ru:"Скидка привяжется к твоему номеру телефона — вводить промокод не нужно."},
+  name:{kk:"Атың",ru:"Имя"}, namePh:{kk:"Мысалы, Айгерім",ru:"Например, Айгерим"},
+  phone:{kk:"Телефон нөмірің",ru:"Номер телефона"},
+  why:{kk:"Келгенде немесе телефонмен тапсырыс бергенде нөміріңді айтасың — кассир/оператор жеңілдікті бірден жасайды.",
+       ru:"Когда придёшь или закажешь по телефону — просто назови номер, кассир/оператор сразу сделает скидку."},
+  consent:{kk:"Жеке деректерімді QFC-тің жеңілдік беру және сапаны жақсарту мақсатында өңдеуге келісемін",
+           ru:"Согласен(на) на обработку персональных данных для предоставления скидки и улучшения качества QFC"},
+  next:{kk:"Әрі қарай",ru:"Дальше"}, skip:{kk:"Өткізу",ru:"Пропустить"}, finish:{kk:"Жеңілдікті алу",ru:"Получить скидку"},
+  q:{kk:"Сұрақ",ru:"Вопрос"}, multi:{kk:"Бірнешеуін таңдауға болады",ru:"Можно выбрать несколько"},
+  one:{kk:"Біреуін таңда",ru:"Выбери один вариант"}, otherPh:{kk:"Қай жерге? Атауын жаз",ru:"Куда? Напиши название"}, write:{kk:"Еркін жаз — біз бәрін оқимыз",ru:"Пиши свободно — мы читаем всё"},
+  low:{kk:"Нашар",ru:"Плохо"}, high:{kk:"Керемет",ru:"Отлично"}, n0:{kk:"Мүлде жоқ",ru:"Точно нет"}, n10:{kk:"Міндетті түрде",ru:"Обязательно"},
+  doneH:{kk:"Рақмет, {n}! 🙌",ru:"Спасибо, {n}! 🙌"},
+  doneP:{kk:"Жауаптарың QFC командасына жетті. Сыйлығың дайын:",ru:"Твои ответы уже у команды QFC. Твой подарок готов:"},
+  again:{kk:"Сен сауалнамадан өтіп қойғансың. Сенің жеңілдігің:",ru:"Ты уже прошёл(ла) опрос. Твоя скидка:"},
+  off:{kk:"жеңілдік · бір тапсырысқа",ru:"скидка · на один заказ"},
+  until:{kk:"{d} дейін жарамды · {x} күн қалды",ru:"Действует до {d} · осталось {x} дн."},
+  expired:{kk:"Мерзімі {d} аяқталды",ru:"Срок истёк {d}"},
+  howH:{kk:"Қалай пайдаланамын?",ru:"Как воспользоваться?"},
+  how1:{kk:"<b>Телефонмен</b> тапсырыс бергенде операторға айт: «Сауалнама бойынша 10%» және нөміріңді ата.",ru:"<b>По телефону</b> скажи оператору: «Скидка 10% за опрос» и назови свой номер."},
+  how2:{kk:"<b>Келгенде</b> кассирге дәл солай айт — жеңілдік нөміріңе бекітілген.",ru:"<b>В заведении</b> скажи то же самое кассиру — скидка привязана к номеру."},
+  how3:{kk:"Нөмір табылмаса — осы экранның <b>скриншотын</b> көрсет.",ru:"Если номер не нашли — покажи <b>скриншот</b> этого экрана."},
+  pin:{kk:"Тексеру коды",ru:"Код проверки"},
+  errName:{kk:"Атыңды жаз 🙂",ru:"Напиши своё имя 🙂"}, errPhone:{kk:"Нөмірді толық жаз",ru:"Введи номер полностью"},
+  errConsent:{kk:"Келісімді белгіле",ru:"Отметь согласие"}, checking:{kk:"Тексеріп жатырмын…",ru:"Проверяю…"}
+};
+
+/* ---------------- state ---------------- */
+const stage = document.getElementById('stage'), prog = document.getElementById('prog');
+const params = new URLSearchParams(location.search);
+let S = JSON.parse(store.get('qfc_state') || 'null') || freshState();
+function freshState(){ return { session: (crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2)),
+  A:{}, path:[], startedAt:Date.now(), name:'', phone:'',
+  utm_source: params.get('utm_source')||params.get('src')||'', utm_campaign: params.get('utm_campaign')||'' }; }
+const save = () => store.set('qfc_state', JSON.stringify(S));
+const A = () => Object.assign({ _name:S.name }, S.A);
+const val = (x) => typeof x === 'function' ? x(A()) : x;
+const applies = q => !q.when || q.when(A());
+const qById = id => Q.find(q => q.id === id);
+function nextQ(fromId){ let i = fromId ? Q.findIndex(q=>q.id===fromId)+1 : 0; for(; i<Q.length; i++) if(applies(Q[i])) return Q[i]; return null; }
+
+/* ---------------- phone ---------------- */
+function normPhone(v){ let d=(v||'').replace(/\D/g,''); if(d.length===11 && d[0]==='8') d='7'+d.slice(1); if(d.length===10) d='7'+d; return d; }
+function fmtPhone(d){ d=normPhone(d).slice(1); let s='+7';
+  if(d.length) s+=' ('+d.slice(0,3); if(d.length>=3) s+=')'; if(d.length>3) s+=' '+d.slice(3,6); if(d.length>6) s+='-'+d.slice(6,8); if(d.length>8) s+='-'+d.slice(8,10); return s; }
+const fmtDate = ts => { const d=new Date(ts); return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); };
+
+/* ---------------- API ---------------- */
+function cleanAnswers(){ const a={}; Q.forEach(q=>{ if(applies(q) && S.A[q.id]!==undefined){ a[q.id]=S.A[q.id]; if(S.A[q.id]==='other' && S.A[q.id+'_other']) a[q.id+'_other']=S.A[q.id+'_other']; } }); return a; }
+function track(status, extra){
+  if(!CONFIG.endpoint) return;
+  const last = S.path[S.path.length-1] || 'contact';
+  const body = Object.assign({ action:'save', session:S.session, status, name:S.name, phone:S.phone, lang:L,
+    step_no:S.path.length, last_step:last, seconds:Math.round((Date.now()-S.startedAt)/1000),
+    utm_source:S.utm_source, utm_campaign:S.utm_campaign, ua:navigator.userAgent, answers:cleanAnswers() }, extra||{});
+  try{ fetch(CONFIG.endpoint,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}); }catch(e){}
+}
+async function checkPhone(phone){
+  if(!CONFIG.endpoint) return null;
+  try{ const r = await fetch(CONFIG.endpoint+(CONFIG.endpoint.includes('?')?'&':'?')+'action=check&phone='+phone); return await r.json(); }catch(e){ return null; }
+}
+
+/* ---------------- render helpers ---------------- */
+function swap(html, after){
+  const cur = stage.firstElementChild;
+  const go = () => { stage.innerHTML = html; after && after(); window.scrollTo({top:0}); };
+  if(cur){ cur.classList.add('out'); setTimeout(go, 220); } else go();
+}
+function setProgress(){
+  const total = S.path.length + (function(){ let n=0,id=S.path[S.path.length-1]; let q=nextQ(id); while(q){ n++; q=nextQ(q.id);} return n; })();
+  prog.classList.toggle('show', S.path.length>0);
+  prog.querySelector('b').style.width = Math.min(100, (S.path.length/(total+1))*100) + '%';
+  document.body.className = 's' + (S.path.length%3);
+}
+const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const backIco = `<svg viewBox="0 0 24 24" fill="none" stroke="#2B2B2B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>`;
+const comb = `<svg viewBox="0 0 30 20"><path d="M0 0H20A10 10 0 0 1 30 10V20H8A8 8 0 0 1 0 12Z"/></svg>`;
+
+/* ---------------- screens ---------------- */
+function renderIntro(){
+  prog.classList.remove('show');
+  const done = JSON.parse(store.get('qfc_done')||'null');
+  if(done && !params.has('again')) return renderDone(done, true);
+  const resume = S.path.length>0;
+  swap(`<section class="screen hero">
+    <svg class="logo-big" viewBox="0 0 176 178"><use href="#qfc"/></svg>
+    <div><span class="badge">${T(UI.badge)}</span></div>
+    <h1>${T(UI.h1)}</h1>
+    <p>${T(UI.sub)}</p>
+    <div class="meta"><span>${T(UI.m1)}</span><span>${T(UI.m2)}</span><span>${T(UI.m3)}</span></div>
+    <button class="btn" id="go">${T(resume?UI.resume:UI.start)} <span>→</span></button>
+  </section>`, ()=> document.getElementById('go').onclick = () => resume ? show(qById(S.path[S.path.length-1])) : renderContact());
+}
+
+function renderContact(){
+  prog.classList.add('show'); prog.querySelector('b').style.width='3%';
+  swap(`<section class="screen">
+    <div class="say"><div class="av"><svg viewBox="0 0 176 178"><use href="#qfc"/></svg></div><div class="bub">${T(UI.meetP)}</div></div>
+    <h2 class="q">${T(UI.meetH)}</h2>
+    <div style="height:14px"></div>
+    <label class="field"><span>${T(UI.name)}</span><input class="inp" id="nm" maxlength="40" autocomplete="given-name" placeholder="${T(UI.namePh)}" value="${esc(S.name)}"></label>
+    <label class="field"><span>${T(UI.phone)}</span><input class="inp" id="ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (7__) ___-__-__" value="${S.phone?fmtPhone(S.phone):'+7 '}"></label>
+    <div class="why"><span>💡</span><span>${T(UI.why)}</span></div>
+    <label class="consent"><input type="checkbox" id="cs" ${S.phone?'checked':''}><span>${T(UI.consent)}</span></label>
+    <div class="actions"><button class="btn" id="nx">${T(UI.next)} <span>→</span></button></div>
+  </section>`, ()=>{
+    const nm=document.getElementById('nm'), ph=document.getElementById('ph'), cs=document.getElementById('cs'), nx=document.getElementById('nx');
+    ph.oninput=()=>{ const d=normPhone(ph.value); ph.value = d.length>1 ? fmtPhone(d) : '+7 '; };
+    nx.onclick = async ()=>{
+      const name=nm.value.trim(), phone=normPhone(ph.value);
+      nm.classList.remove('err'); ph.classList.remove('err');
+      if(name.length<2){ nm.classList.add('err'); nm.focus(); return toast(T(UI.errName)); }
+      if(!/^7[0-9]{10}$/.test(phone)){ ph.classList.add('err'); ph.focus(); return toast(T(UI.errPhone)); }
+      if(!cs.checked){ return toast(T(UI.errConsent)); }
+      S.name=name.charAt(0).toUpperCase()+name.slice(1); S.phone=phone; save();
+      nx.disabled=true; nx.innerHTML=T(UI.checking);
+      const ex = await checkPhone(phone);
+      if(ex && ex.completed){
+        const done={ name:S.name, phone, pin:ex.pin, expires:ex.expires };
+        store.set('qfc_done', JSON.stringify(done)); store.del('qfc_state');
+        return renderDone(done, true);
+      }
+      show(nextQ(null));
+    };
+  });
+}
+
+function show(q){
+  if(!q) return finish();
+  if(S.path[S.path.length-1] !== q.id) S.path.push(q.id);
+  save(); setProgress(); track(S.path.length===1?'started':'in_progress');
+  const say = val(q.say), n = S.path.length, isLast = !nextQ(q.id), cur = S.A[q.id];
+  let body = '';
+  if(q.type==='single' || q.type==='multi'){
+    const chips = q.type==='multi';
+    body = `<div class="hint">${T(chips?UI.multi:UI.one)}</div>
+      <div class="opts ${chips?'chips':''}">${q.o.map(([v,l],i)=>{
+        const on = chips ? (cur||[]).includes(v) : cur===v;
+        return `<button class="opt ${on?'on':''}" data-v="${v}"><span class="k">${String.fromCharCode(65+i)}</span>${T(l)}</button>`;}).join('')}</div>
+      ${q.o.some(o=>o[2]&&o[2].other)?`<input class="inp ${cur==='other'?'':'hide'}" id="other" maxlength="60" style="margin-top:10px" placeholder="${T(UI.otherPh)}" value="${esc(S.A[q.id+'_other']||'')}">`:''}`;
+  } else if(q.type==='rating'){
+    body = `<div class="hint">&nbsp;</div><div class="combs">${[1,2,3,4,5].map(v=>`<button data-v="${v}" class="${cur>=v?'lit':''} ${cur===v?'on':''}">${comb}${v}</button>`).join('')}</div>
+      <div class="scale-l"><span>${T(UI.low)}</span><span>${T(UI.high)}</span></div>`;
+  } else if(q.type==='nps'){
+    body = `<div class="hint">0 — 10</div><div class="scale nps">${[...Array(11).keys()].map(v=>`<button data-v="${v}" class="${cur===v?'on':''}">${v}</button>`).join('')}</div>
+      <div class="scale-l"><span>${T(UI.n0)}</span><span>${T(UI.n10)}</span></div>`;
+  } else if(q.type==='text'){
+    body = `<div class="hint">${T(UI.write)}</div><textarea id="ta" maxlength="600">${esc(cur||'')}</textarea><div class="count"><span id="cnt">${(cur||'').length}</span>/600</div>`;
+  }
+  const auto = q.type==='single' || q.type==='rating' || q.type==='nps';
+  const has = Array.isArray(cur) ? cur.length>0 : cur==='other' ? !!(S.A[q.id+'_other']||'').trim() : cur!==undefined && cur!=='';
+  swap(`<section class="screen">
+    <div class="say">${say?`<div class="av"><svg viewBox="0 0 176 178"><use href="#qfc"/></svg></div><div class="bub" id="bub"><span class="dots"><i></i><i></i><i></i></span></div>`:''}</div>
+    <div class="qnum">${T(UI.q)} ${n}</div>
+    <h2 class="q">${T(val(q.q))}</h2>
+    ${body}
+    <div class="actions">
+      <button class="back" id="bk" aria-label="back">${backIco}</button>
+      ${q.optional?`<button class="btn ghost" id="sk">${T(UI.skip)}</button>`:''}
+      <button class="btn" id="nx" ${(!q.optional && !has)?'disabled':''}>${isLast?T(UI.finish):T(UI.next)} <span>→</span></button>
+    </div>
+  </section>`, ()=>{
+    if(say) setTimeout(()=>{ const b=document.getElementById('bub'); if(b) b.textContent=T(say); }, 600);
+    const nx=document.getElementById('nx');
+    const go=()=>{ save(); show(nextQ(q.id)); };
+    nx.onclick=go;
+    document.getElementById('bk').onclick=back;
+    const sk=document.getElementById('sk'); if(sk) sk.onclick=()=>{ delete S.A[q.id]; go(); };
+    stage.querySelectorAll('.opt').forEach(b=> b.onclick=()=>{
+      const v=b.dataset.v;
+      if(q.type==='multi'){
+        let arr=S.A[q.id]||[];
+        // "ештеңе / бәрі жақсы" нұсқасы басқаларымен бірге таңдалмайды
+        const exclusive = ['nothing','none','easy','ok'];
+        if(exclusive.includes(v)) arr = arr.includes(v)?[]:[v];
+        else { arr = arr.filter(x=>!exclusive.includes(x)); const i=arr.indexOf(v); i>-1?arr.splice(i,1):arr.push(v); }
+        S.A[q.id]=arr; stage.querySelectorAll('.opt').forEach(x=>x.classList.toggle('on',arr.includes(x.dataset.v)));
+        nx.disabled=!arr.length;
+      } else {
+        S.A[q.id]=v; stage.querySelectorAll('.opt').forEach(x=>x.classList.toggle('on',x===b));
+        const oth=document.getElementById('other');
+        if(oth && v==='other'){ oth.classList.remove('hide'); oth.focus(); nx.disabled=!oth.value.trim(); return; }
+        if(oth){ oth.classList.add('hide'); delete S.A[q.id+'_other']; }
+        nx.disabled=false; setTimeout(go,280);
+      }
+    });
+    stage.querySelectorAll('.combs button').forEach(b=> b.onclick=()=>{ const v=+b.dataset.v; S.A[q.id]=v;
+      stage.querySelectorAll('.combs button').forEach(x=>{x.classList.toggle('lit',+x.dataset.v<=v); x.classList.toggle('on',+x.dataset.v===v)});
+      nx.disabled=false; setTimeout(go,420); });
+    stage.querySelectorAll('.scale button').forEach(b=> b.onclick=()=>{ S.A[q.id]=+b.dataset.v;
+      stage.querySelectorAll('.scale button').forEach(x=>x.classList.toggle('on',x===b)); nx.disabled=false; setTimeout(go,320); });
+    const oth=document.getElementById('other');
+    if(oth){ oth.oninput=()=>{ S.A[q.id+'_other']=oth.value; nx.disabled=!oth.value.trim(); }; oth.onkeydown=e=>{ if(e.key==='Enter' && oth.value.trim()) go(); }; }
+    const ta=document.getElementById('ta');
+    if(ta) ta.oninput=()=>{ S.A[q.id]=ta.value; document.getElementById('cnt').textContent=ta.value.length; nx.disabled=!q.optional&&!ta.value.trim(); };
+  });
+}
+function back(){ S.path.pop(); const prev=S.path.pop(); save(); prev ? show(qById(prev)) : renderContact(); }
+
+function finish(){
+  const pin = String(crypto.getRandomValues(new Uint32Array(1))[0] % 9000 + 1000);
+  const expires = Date.now() + CONFIG.validDays*864e5;
+  const done = { name:S.name, phone:S.phone, pin, expires };
+  track('completed', { pin, expires:new Date(expires).toISOString() });
+  store.set('qfc_done', JSON.stringify(done)); store.del('qfc_state');
+  renderDone(done, false);
+}
+
+function renderDone(d, again){
+  prog.classList.remove('show');
+  const exp = new Date(d.expires).getTime(), left = Math.ceil((exp-Date.now())/864e5);
+  const expTxt = left>0 ? T(UI.until).replace('{d}',fmtDate(exp)).replace('{x}',left) : T(UI.expired).replace('{d}',fmtDate(exp));
+  swap(`<section class="screen done">
+    <svg class="logo-big" viewBox="0 0 176 178"><use href="#qfc"/></svg>
+    <h2>${T(UI.doneH).replace('{n}',esc(d.name))}</h2>
+    <p>${again?T(UI.again):T(UI.doneP)}</p>
+    <div class="ticket">
+      <div class="off">−${CONFIG.discount}%</div>
+      <div class="lbl">${T(UI.off)}</div>
+      <div class="cut"></div>
+      <div class="who"><b>${esc(d.name)}</b><small>${fmtPhone(d.phone)}</small></div>
+      <div class="exp">⏳ ${expTxt}</div>
+      ${d.pin?`<div class="pin">${T(UI.pin)}: <b>${d.pin}</b></div>`:''}
+    </div>
+    <p style="font-weight:800;color:var(--ink);margin-bottom:10px">${T(UI.howH)}</p>
+    <div class="steps">
+      <div><i>📞</i><span>${T(UI.how1)}</span></div>
+      <div><i>🏪</i><span>${T(UI.how2)}</span></div>
+      <div><i>📸</i><span>${T(UI.how3)}</span></div>
+    </div>
+  </section>`, ()=>{ if(!again) confetti(); });
+}
+
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),1800); }
+function confetti(){
+  const box=document.createElement('div'); box.className='confetti'; document.body.appendChild(box);
+  const cols=['#D6173F','#F9B92E','#EFE8D2','#2B2B2B'];
+  for(let i=0;i<60;i++){ const p=document.createElement('i'); const s=6+Math.random()*10;
+    p.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;background:${cols[i%4]};border-radius:${Math.random()>.5?'50%':'0 '+s+'px 0 0'};animation-duration:${1.8+Math.random()*1.6}s;animation-delay:${Math.random()*.4}s`;
+    box.appendChild(p); }
+  setTimeout(()=>box.remove(),4200);
+}
+
+/* ---------------- lang ---------------- */
+document.querySelectorAll('.lang button').forEach(b=>{
+  b.classList.toggle('on', b.dataset.l===L);
+  b.onclick=()=>{ L=b.dataset.l; store.set('qfc_lang',L); document.documentElement.lang=L;
+    document.querySelectorAll('.lang button').forEach(x=>x.classList.toggle('on',x===b));
+    const done=JSON.parse(store.get('qfc_done')||'null');
+    if(stage.querySelector('.done') && done) return renderDone(done,true);
+    if(stage.querySelector('#cs')) return renderContact();
+    const id=S.path[S.path.length-1];
+    if(id && stage.querySelector('.qnum')){ S.path.pop(); show(qById(id)); } else renderIntro();
+  };
+});
+document.documentElement.lang = L;
+renderIntro();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# құпия және жергілікті файлдар — GitHub-қа жіберілмейді
+google-sheets-script.gs
+КІЛТТЕР-құпия.txt
+*.txt
+.claude/

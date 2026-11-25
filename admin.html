@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>QFC · CustDev аналитика</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F7F5; --surface:#FFFFFF; --text:#111111; --text-2:#6B6B6B; --text-3:#A3A3A3;
+  --border:#E8E8E5; --line:#F0F0ED; --accent:#D6173F; --bar:#2A2A2A;
+  --ok:#12805C; --bad:#C2253B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+button{font-family:inherit}
+
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.hbar{max-width:1200px;margin:0 auto;padding:0 32px;height:60px;display:flex;align-items:center;gap:36px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;white-space:nowrap}
+.brand svg{width:20px;height:20px}
+.brand span{color:var(--text-3);font-weight:500}
+nav{display:flex;gap:24px;height:100%}
+nav button{border:0;background:none;font-size:14px;font-weight:500;color:var(--text-2);cursor:pointer;height:100%;border-bottom:2px solid transparent;padding:0 2px;margin-bottom:-1px}
+nav button:hover{color:var(--text)}
+nav button.on{color:var(--text);border-bottom-color:var(--text)}
+.hright{margin-left:auto;display:flex;align-items:center;gap:4px}
+.upd{font-size:12px;color:var(--text-3);margin-right:8px;white-space:nowrap}
+.link{border:0;background:none;font-size:13px;font-weight:500;color:var(--text-2);padding:6px 10px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.link:hover{background:var(--line);color:var(--text)}
+
+main{max-width:1200px;margin:0 auto;padding:40px 32px 80px}
+.ptitle{margin-bottom:28px}
+h1{font-size:24px;font-weight:600;letter-spacing:-.5px}
+.desc{color:var(--text-2);font-size:14px;margin-top:4px}
+section.block{margin-top:56px}
+.shead{margin-bottom:20px}
+.shead h2{font-size:16px;font-weight:600;letter-spacing:-.2px}
+.shead p{color:var(--text-2);font-size:13px;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.pad{padding:24px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr)}
+.kpi{padding:22px 24px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kpi:nth-child(4n){border-right:0}
+.kpi:nth-last-child(-n+4){border-bottom:0}
+.kpi .l{font-size:13px;color:var(--text-2);font-weight:500}
+.kpi .v{font-size:30px;font-weight:600;letter-spacing:-1px;margin-top:6px;line-height:1.15}
+.kpi .s{font-size:12px;color:var(--text-3);margin-top:4px}
+.kpi.hl .v{color:var(--accent)}
+
+.g2{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+.g2.eq{grid-template-columns:1fr 1fr}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+
+.ctitle{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;gap:12px}
+.ctitle h3{font-size:14px;font-weight:600}
+.ctitle span{font-size:12px;color:var(--text-3);white-space:nowrap}
+.bars{display:grid;gap:14px}
+.bar .t{display:flex;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:6px}
+.bar .t span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .t span:last-child{color:var(--text-3);white-space:nowrap}
+.bar .t b{font-weight:600;color:var(--text);margin-right:8px}
+.track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.fill{height:100%;background:var(--bar);border-radius:3px}
+.bar:first-child .fill{background:var(--accent)}
+.more{border:0;background:none;color:var(--text-2);font-size:12px;font-weight:500;margin-top:2px;cursor:pointer;padding:0;justify-self:start}
+.more:hover{color:var(--text)}
+
+.days{display:flex;align-items:flex-end;gap:6px;height:180px}
+.day{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;min-width:0}
+.col{width:100%;max-width:28px;background:var(--line);border-radius:4px 4px 2px 2px;position:relative;min-height:2px}
+.col i{position:absolute;left:0;right:0;bottom:0;background:var(--bar);border-radius:4px 4px 2px 2px}
+.day small{font-size:11px;color:var(--text-3)}
+.day em{font-style:normal;font-size:11px;color:var(--text-2);height:14px}
+.legend{display:flex;gap:18px;font-size:12px;color:var(--text-2);margin-top:16px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+
+.quotes{max-height:560px;overflow:auto;margin:-4px 0}
+.quote{padding:16px 0;border-bottom:1px solid var(--line)}
+.quote:last-child{border-bottom:0}
+.quote p{font-size:14px;line-height:1.55}
+.quote .m{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:12px;color:var(--text-3)}
+.quote .m a{color:var(--text-3);text-decoration:none}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;background:var(--line);color:var(--text-2);font-size:12px;font-weight:500}
+
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.seg{display:inline-flex;background:var(--line);border-radius:9px;padding:3px}
+.seg button{border:0;background:none;font-size:13px;font-weight:500;color:var(--text-2);padding:6px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.seg button em{font-style:normal;color:var(--text-3);margin-left:6px}
+.search{flex:1;min-width:220px;height:36px;border:1px solid var(--border);border-radius:9px;padding:0 12px;font:inherit;font-size:13px;background:var(--surface);outline:none}
+.search:focus{border-color:var(--text)}
+.tw{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--text-2);padding:12px 16px;border-bottom:1px solid var(--border);white-space:nowrap;background:#FBFBFA}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#FBFBFA}
+td a{color:var(--text);text-decoration:none;white-space:nowrap}
+td a:hover{text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.st:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--text-3)}
+.st.ok:before{background:var(--ok)} .st.warn:before{background:#D9A520} .st.bad:before{background:var(--bad)} .st.k:before{background:var(--text)}
+.muted{color:var(--text-3)}
+.nowrap{white-space:nowrap}
+.empty{padding:48px;text-align:center;color:var(--text-3)}
+
+.login{max-width:360px;margin:16vh auto 0;padding:0 24px}
+.login svg{width:32px;height:32px;margin-bottom:24px}
+.login h1{font-size:22px}
+.login input{width:100%;height:48px;border:1px solid var(--border);border-radius:10px;padding:0 14px;font:inherit;font-size:15px;margin:24px 0 10px;outline:none;background:var(--surface)}
+.login input:focus{border-color:var(--text)}
+.btn{width:100%;height:48px;border:0;border-radius:10px;background:var(--text);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.demo{background:#FFF8E6;color:#7A5A00;font-size:12px;text-align:center;padding:8px 16px;border-bottom:1px solid #F3E6C0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);background:var(--text);color:#fff;padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.hide{display:none!important}
+
+@media(max-width:1000px){.g3{grid-template-columns:1fr 1fr}.g2,.g2.eq{grid-template-columns:1fr}}
+@media(max-width:720px){
+  .hbar{padding:0 16px;gap:16px}.upd{display:none} main{padding:28px 16px 60px}
+  .kpis{grid-template-columns:1fr 1fr}.kpi:nth-child(4n){border-right:1px solid var(--line)}.kpi:nth-child(2n){border-right:0}
+  .kpi:nth-last-child(-n+4){border-bottom:1px solid var(--line)}.kpi:nth-last-child(-n+2){border-bottom:0}
+  .g3{grid-template-columns:1fr}.brand span{display:none}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs><g id="qfc">
+  <path d="M0 0H96A30 30 0 0 1 126 30V51H22A22 22 0 0 1 0 29Z" fill="#D6173F"/>
+  <path d="M25 51H126V153A25 25 0 0 1 101 178H0V76A25 25 0 0 1 25 51Z" fill="#E9E2CB"/>
+  <path d="M126 51H176L133 76Z" fill="#F9B92E"/><circle cx="90" cy="76" r="12" fill="#333"/>
+  <path d="M126 76H151A25 25 0 0 1 176 101V178H151A25 25 0 0 1 126 153Z" fill="#D6173F"/></g></defs></svg>
+
+<div id="demoBar" class="demo hide"></div>
+
+<div id="loginView" class="login hide">
+  <svg viewBox="0 0 176 178"><use href="#qfc"/></svg>
+  <h1 data-t="loginH"></h1>
+  <p class="desc" data-t="loginP"></p>
+  <input id="key" type="password" autocomplete="current-password" placeholder="ADMIN_KEY">
+  <button class="btn" id="loginBtn" data-t="enter"></button>
+</div>
+
+<div id="appView" class="hide">
+<header><div class="hbar">
+  <div class="brand"><svg viewBox="0 0 176 178"><use href="#qfc"/></svg>QFC <span>CustDev</span></div>
+  <nav><button data-tab="stats" class="on" data-t="tStats"></button><button data-tab="people" data-t="tPeople"></button></nav>
+  <div class="hright"><span class="upd num" id="upd"></span><button class="link" id="refresh" data-t="refresh"></button><button class="link" id="langBtn"></button><button class="link" id="logout" data-t="logout"></button></div>
+</div></header>
+
+<main>
+  <div id="tab-stats">
+    <div class="ptitle"><h1 data-t="ovH"></h1><p class="desc" data-t="ovP"></p></div>
+    <div class="card kpis" id="kpis"></div>
+
+    <section class="block">
+      <div class="g2">
+        <div class="card pad"><div class="ctitle"><h3 data-t="byDay"></h3><span data-t="last14"></span></div><div class="days" id="days"></div>
+          <div class="legend"><span><i style="background:var(--line)"></i><span data-t="started"></span></span><span><i style="background:var(--bar)"></i><span data-t="completed"></span></span></div></div>
+        <div class="card pad"><div class="ctitle"><h3 data-t="dropH"></h3><span id="dropN"></span></div><div class="bars" id="drop"></div></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="shead"><h2 data-t="painsH"></h2><p data-t="painsP"></p></div>
+      <div class="g3" id="painCharts"></div>
+    </section>
+
+    <section class="block">
+      <div class="shead"><h2 data-t="jobH"></h2><p data-t="jobP"></p></div>
+      <div class="g3" id="jobCharts"></div>
+    </section>
+
+    <section class="block">
+      <div class="shead"><h2 data-t="voiceH"></h2><p data-t="voiceP"></p></div>
+      <div class="g2 eq">
+        <div class="card pad"><div class="ctitle"><h3 data-t="vPain"></h3><span id="qPainN"></span></div><div class="quotes" id="qPain"></div></div>
+        <div class="card pad"><div class="ctitle"><h3 data-t="vIdea"></h3><span id="qIdeaN"></span></div><div class="quotes" id="qIdea"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="tab-people" class="hide">
+    <div class="ptitle"><h1 data-t="tPeople"></h1><p class="desc" data-t="peopleP"></p></div>
+    <div class="toolbar">
+      <div class="seg" id="pFilter"></div>
+      <input class="search" id="pSearch">
+      <button class="link" id="csv">CSV ↓</button>
+    </div>
+    <div class="card tw"><table><thead><tr id="pHead"></tr></thead><tbody id="pBody"></tbody></table></div>
+  </div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script>
+const CONFIG = window.QFC_CONFIG, Q = window.QFC_Q, SHORT = window.QFC_SHORT;
+const params = new URLSearchParams(location.search);
+const DEMO = !CONFIG.endpoint || params.has('demo');
+const ls = { get:k=>{try{return localStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, del:k=>{try{localStorage.removeItem(k)}catch(e){}} };
+let L = ls.get('qfc_admin_lang') || 'kk';
+const T = o => (o && typeof o==='object' && !Array.isArray(o)) ? (o[L] ?? o.kk) : o;
+const I = {
+  loginH:{kk:"CustDev аналитика",ru:"CustDev аналитика"}, loginP:{kk:"Google Apps Script-тегі ADMIN_KEY құпия сөзін енгізіңіз.",ru:"Введите пароль ADMIN_KEY из Google Apps Script."},
+  enter:{kk:"Кіру",ru:"Войти"}, tStats:{kk:"Шолу",ru:"Обзор"}, tPeople:{kk:"Клиенттер",ru:"Клиенты"},
+  refresh:{kk:"Жаңарту",ru:"Обновить"}, logout:{kk:"Шығу",ru:"Выйти"},
+  ovH:{kk:"Шолу",ru:"Обзор"}, ovP:{kk:"Сауалнама нәтижелері нақты уақытта",ru:"Результаты опроса в реальном времени"},
+  peopleP:{kk:"Сауалнаманы бастаған барлық клиент. Нөмірді басып қоңырау шалуға болады.",ru:"Все, кто начал опрос. Нажмите на номер, чтобы позвонить."},
+  byDay:{kk:"Күн бойынша қатысу",ru:"Участие по дням"}, last14:{kk:"соңғы 14 күн",ru:"последние 14 дней"},
+  started:{kk:"Бастады",ru:"Начали"}, completed:{kk:"Толық өтті",ru:"Прошли полностью"},
+  dropH:{kk:"Қай сұрақта тастап кетті",ru:"На каком вопросе бросили"},
+  painsH:{kk:"Клиенттердің болі",ru:"Боли клиентов"}, painsP:{kk:"Не ұнамайды, не кедергі болады, неге сирек келеді",ru:"Что не нравится, что мешает, почему приходят реже"},
+  jobH:{kk:"Кім, қашан және неге",ru:"Кто, когда и почему"}, jobP:{kk:"Тапсырыс жағдайы, арна, таңдау себебі, бәсекелестер",ru:"Ситуация заказа, канал, причина выбора, конкуренты"},
+  voiceH:{kk:"Клиент дауысы",ru:"Голос клиента"}, voiceP:{kk:"Ашық жауаптар — ең жаңасы жоғарыда",ru:"Открытые ответы — новые сверху"},
+  vPain:{kk:"Нашар тәжірибе",ru:"Плохой опыт"}, vIdea:{kk:"Идеялар мен NPS себептері",ru:"Идеи и причины NPS"},
+  kStarted:{kk:"Бастады",ru:"Начали"}, kDone:{kk:"Толық өтті",ru:"Прошли полностью"}, kPartial:{kk:"Аяқтамады",ru:"Не завершили"},
+  kConv:{kk:"Конверсия",ru:"Конверсия"}, kRed:{kk:"Жеңілдік пайдаланды",ru:"Использовали скидку"}, kCsat:{kk:"CSAT",ru:"CSAT"},
+  kNps:{kk:"NPS",ru:"NPS"}, kTime:{kk:"Орташа уақыт",ru:"Среднее время"},
+  sConv:{kk:"бастағандардан",ru:"от начавших"}, sRed:{kk:"өткендердің",ru:"от прошедших"}, sCsat:{kk:"5 баллдан",ru:"из 5"}, sNps:{kk:"−100 … +100",ru:"−100 … +100"}, sTime:{kk:"толық өтуге",ru:"на прохождение"},
+  resp:{kk:"жауап",ru:"ответов"}, ppl:{kk:"адам",ru:"чел."}, showAll:{kk:"Барлығын көрсету",ru:"Показать все"}, showLess:{kk:"Жасыру",ru:"Свернуть"},
+  fAll:{kk:"Барлығы",ru:"Все"}, fDone:{kk:"Толық өтті",ru:"Прошли"}, fPartial:{kk:"Аяқтамады",ru:"Не завершили"}, fBad:{kk:"Наразылар",ru:"Недовольные"},
+  search:{kk:"Аты немесе нөмір бойынша іздеу",ru:"Поиск по имени или номеру"},
+  hName:{kk:"Аты",ru:"Имя"}, hPhone:{kk:"Телефон",ru:"Телефон"}, hStatus:{kk:"Статус",ru:"Статус"}, hStep:{kk:"Тоқтаған сұрақ",ru:"Где остановился"},
+  hDate:{kk:"Соңғы әрекет",ru:"Последнее действие"}, hDisc:{kk:"Жеңілдік",ru:"Скидка"}, hVisit:{kk:"Жиілік",ru:"Частота"}, hPain:{kk:"Негізгі боль",ru:"Главная боль"},
+  sDone:{kk:"Өтті",ru:"Прошёл"}, sPart:{kk:"Аяқтамады",ru:"Не завершил"}, sDup:{kk:"Қайталау",ru:"Повтор"},
+  dActive:{kk:"{d} дейін",ru:"до {d}"}, dUsed:{kk:"Пайдаланды",ru:"Использована"}, dExp:{kk:"Мерзімі өтті",ru:"Истекла"},
+  empty:{kk:"Әзірге дерек жоқ",ru:"Пока нет данных"}, bad:{kk:"Құпия сөз қате",ru:"Неверный пароль"},
+  demo:{kk:"Демо режим — config.js ішінде endpoint қойылмаған, мысал деректер көрсетілуде",ru:"Демо-режим — endpoint в config.js не указан, показаны примерные данные"},
+  upd:{kk:"Жаңартылды",ru:"Обновлено"}, contact:{kk:"Танысу (аты/нөмір)",ru:"Знакомство (имя/номер)"}
+};
+const CH = {
+  pain: ['pain','friction','rare_why','phone_q','delivery_q','hall_q','takeaway_q','never_why','price_ok'],
+  job:  ['visit','occasion','channel','why_qfc','alt','items','missing','price','source','never_where','never_trigger','age']
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const normPhone = v => { let d=String(v||'').replace(/\D/g,''); if(d.length===11&&d[0]==='8') d='7'+d.slice(1); if(d.length===10) d='7'+d; return d; };
+const fmtPhone = d => { d=normPhone(d).slice(1); let s='+7'; if(d.length) s+=' ('+d.slice(0,3); if(d.length>=3) s+=')'; if(d.length>3) s+=' '+d.slice(3,6); if(d.length>6) s+='-'+d.slice(6,8); if(d.length>8) s+='-'+d.slice(8,10); return s; };
+const fmtDate = (v,time) => { if(!v) return ''; const d=new Date(v); if(isNaN(d)) return ''; const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+(time?', '+p(d.getHours())+':'+p(d.getMinutes()):''); };
+const label = (qid, v) => { const q=Q.find(x=>x.id===qid); const o=q&&q.o&&q.o.find(x=>x[0]===String(v)); return o?T(o[1]):String(v); };
+const qname = id => id==='contact' ? T(I.contact) : (SHORT[id]?T(SHORT[id]):id);
+const list = v => Array.isArray(v) ? v : String(v??'').split(',').map(s=>s.trim()).filter(Boolean);
+const has = v => v!=='' && v!==undefined && v!==null;
+const dash = '<span class="muted">—</span>';
+function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),1800); }
+const discState = r => r.status!=='completed' ? null : r.used==='yes' ? 'used' : (new Date(r.expires)<new Date() ? 'expired' : 'active');
+
+let ROWS = [];
+async function load(){
+  if(DEMO){ if(!ROWS.length) ROWS = demoRows(); }
+  else {
+    const u = CONFIG.endpoint + (CONFIG.endpoint.includes('?')?'&':'?') + new URLSearchParams({action:'data', key:ls.get('qfc_admin_key')||''});
+    const d = await (await fetch(u)).json();
+    if(!d.ok){ ls.del('qfc_admin_key'); return showLogin(true); }
+    ROWS = d.rows;
+  }
+  $('#upd').textContent = T(I.upd)+' '+fmtDate(new Date(),true).split(', ')[1];
+  renderAll();
+}
+function renderAll(){ renderStats(); renderPeople(); }
+
+const LIMIT = 6;
+function bars(el, entries, total){
+  if(!entries.length){ el.innerHTML = `<div class="muted">${T(I.empty)}</div>`; return; }
+  const max = Math.max(...entries.map(e=>e[1]));
+  const html = all => entries.slice(0, all?entries.length:LIMIT).map(([l,n])=>
+    `<div class="bar"><div class="t"><span title="${esc(l)}">${esc(l)}</span><span class="num"><b>${n}</b>${Math.round(n/Math.max(1,total)*100)}%</span></div><div class="track"><div class="fill" style="width:${n/max*100}%"></div></div></div>`).join('');
+  el.innerHTML = html(false);
+  if(entries.length > LIMIT){
+    let open=false; const b=document.createElement('button'); b.className='more';
+    const setTxt=()=> b.textContent = open ? T(I.showLess) : T(I.showAll)+` · ${entries.length}`;
+    b.onclick=()=>{ open=!open; el.innerHTML=html(open); setTxt(); el.appendChild(b); };
+    setTxt(); el.appendChild(b);
+  }
+}
+function count(rows, qid){
+  const m={}; let resp=0;
+  // «Басқа — өзім жазамын» жауаптары өз атауымен көрсетіледі
+  rows.forEach(r=>{ const vals=list(r[qid]); if(!vals.length) return; resp++;
+    vals.forEach(v=>{ const key = v==='other' && r[qid+'_other'] ? '✎ '+String(r[qid+'_other']).trim() : v; m[key]=(m[key]||0)+1; }); });
+  return { resp, entries:Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([v,n])=>[v.startsWith('✎ ')?v:label(qid,v),n]) };
+}
+
+function renderStats(){
+  const R = ROWS.filter(r=>r.status!=='duplicate');
+  const done = R.filter(r=>r.status==='completed'), part = R.filter(r=>r.status!=='completed');
+  const red = done.filter(r=>r.used==='yes').length;
+  const csat = done.filter(r=>has(r.rating)).map(r=>+r.rating);
+  const nps = done.filter(r=>has(r.nps)).map(r=>+r.nps);
+  const npsV = nps.length ? Math.round((nps.filter(x=>x>=9).length - nps.filter(x=>x<=6).length)/nps.length*100) : null;
+  const avgT = done.length ? Math.round(done.reduce((s,r)=>s+(+r.seconds||0),0)/done.length) : 0;
+  const pct = (a,b) => b ? Math.round(a/b*100)+'%' : '—';
+  const k = (l,v,s,hl) => `<div class="kpi ${hl?'hl':''}"><div class="l">${l}</div><div class="v num">${v}</div><div class="s">${s||'&nbsp;'}</div></div>`;
+  $('#kpis').innerHTML =
+      k(T(I.kStarted), R.length) + k(T(I.kDone), done.length, '', true) + k(T(I.kPartial), part.length) + k(T(I.kConv), pct(done.length,R.length), T(I.sConv))
+    + k(T(I.kRed), red, pct(red,done.length)+' '+T(I.sRed)) + k(T(I.kCsat), csat.length?(csat.reduce((a,b)=>a+b,0)/csat.length).toFixed(1):'—', T(I.sCsat))
+    + k(T(I.kNps), npsV===null?'—':(npsV>0?'+':'')+npsV, T(I.sNps)) + k(T(I.kTime), avgT?Math.floor(avgT/60)+':'+String(avgT%60).padStart(2,'0'):'—', T(I.sTime));
+
+  const days=[]; for(let i=13;i>=0;i--){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); days.push(d); }
+  const st={}, dn={}; R.forEach(r=>{ const kk=fmtDate(r.started_at); st[kk]=(st[kk]||0)+1; if(r.status==='completed') dn[kk]=(dn[kk]||0)+1; });
+  const mx = Math.max(1,...days.map(d=>st[fmtDate(d)]||0));
+  $('#days').innerHTML = days.map(d=>{ const kk=fmtDate(d), s=st[kk]||0, c=dn[kk]||0;
+    return `<div class="day" title="${kk} · ${T(I.started)}: ${s} · ${T(I.completed)}: ${c}"><em class="num">${s||''}</em><div class="col" style="height:${s/mx*130}px"><i style="height:${s?c/s*100:0}%"></i></div><small class="num">${d.getDate()}</small></div>`; }).join('');
+
+  const dm={}; part.forEach(r=>{ const s=r.last_step||'contact'; dm[s]=(dm[s]||0)+1; });
+  $('#dropN').textContent = part.length+' '+T(I.ppl);
+  bars($('#drop'), Object.entries(dm).sort((a,b)=>b[1]-a[1]).map(([s,n])=>[qname(s),n]), part.length);
+
+  Object.entries(CH).forEach(([sec, ids])=>{
+    const box=$('#'+sec+'Charts'); box.innerHTML='';
+    ids.forEach(id=>{ const c=count(R,id); if(!c.resp) return;
+      const card=document.createElement('div'); card.className='card pad';
+      card.innerHTML=`<div class="ctitle"><h3>${qname(id)}</h3><span class="num">${c.resp} ${T(I.resp)}</span></div><div class="bars"></div>`;
+      box.appendChild(card); bars(card.querySelector('.bars'), c.entries, c.resp); });
+    if(!box.children.length) box.innerHTML=`<div class="card empty">${T(I.empty)}</div>`;
+  });
+
+  const byDate = (a,b)=>new Date(b.updated_at)-new Date(a.updated_at);
+  const q = (txt, r, chips) => `<div class="quote"><p>${esc(txt)}</p><div class="m"><span>${esc(r.name)}</span><span>·</span><a class="num" href="tel:+${esc(r.phone)}">${fmtPhone(r.phone)}</a><span>·</span><span class="num">${fmtDate(r.updated_at)}</span>${chips.map(c=>`<span class="chip">${esc(c)}</span>`).join('')}</div></div>`;
+  const pains = R.filter(r=>r.pain_story||r.pain_more).sort(byDate);
+  $('#qPainN').textContent = pains.length || '';
+  $('#qPain').innerHTML = pains.length ? pains.map(r=>q([r.pain_story,r.pain_more].filter(Boolean).join(' — '), r, ['CSAT '+r.rating, ...list(r.pain).slice(0,2).map(v=>label('pain',v))])).join('') : `<div class="muted">${T(I.empty)}</div>`;
+  const ideas=[]; R.forEach(r=>{ if(r.nps_why) ideas.push([r,r.nps_why,['NPS '+r.nps]]); if(r.idea) ideas.push([r,r.idea,[qname('idea')]]); });
+  ideas.sort((a,b)=>byDate(a[0],b[0]));
+  $('#qIdeaN').textContent = ideas.length || '';
+  $('#qIdea').innerHTML = ideas.length ? ideas.map(([r,t,c])=>q(t,r,c)).join('') : `<div class="muted">${T(I.empty)}</div>`;
+}
+
+let pf='all';
+const FILTERS = {
+  all: r=>true, completed: r=>r.status==='completed', partial: r=>r.status!=='completed' && r.status!=='duplicate',
+  detractor: r=>(has(r.nps)&&+r.nps<=6) || (has(r.rating)&&+r.rating<=3)
+};
+function peopleRows(){
+  const s=$('#pSearch').value.trim().toLowerCase(), sd=s.replace(/\D/g,'');
+  return ROWS.filter(FILTERS[pf]).filter(r=>!s || String(r.name).toLowerCase().includes(s) || (sd && String(r.phone).includes(sd)))
+    .sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+}
+function renderPeople(){
+  $('#pFilter').innerHTML = [['all',I.fAll],['completed',I.fDone],['partial',I.fPartial],['detractor',I.fBad]]
+    .map(([f,l])=>`<button data-f="${f}" class="${pf===f?'on':''}">${T(l)}<em class="num">${ROWS.filter(FILTERS[f]).length}</em></button>`).join('');
+  $('#pHead').innerHTML = [I.hName,I.hPhone,I.hStatus,I.hStep,I.hVisit,'CSAT','NPS',I.hPain,I.hDisc,I.hDate].map(h=>`<th>${T(h)}</th>`).join('');
+  const rows = peopleRows();
+  $('#pBody').innerHTML = rows.length ? rows.map(r=>{
+    const ds = discState(r);
+    const st = r.status==='completed' ? `<span class="st ok">${T(I.sDone)}</span>` : r.status==='duplicate' ? `<span class="st">${T(I.sDup)}</span>` : `<span class="st warn">${T(I.sPart)}</span>`;
+    const disc = !ds ? dash : ds==='active' ? `<span class="st ok num">${T(I.dActive).replace('{d}',fmtDate(r.expires))}</span>`
+      : ds==='used' ? `<span class="st k">${T(I.dUsed)}</span>` : `<span class="st bad">${T(I.dExp)}</span>`;
+    const pain = [...list(r.pain).map(v=>label('pain',v)), ...list(r.friction).filter(v=>v!=='nothing').map(v=>label('friction',v)),
+      ...list(r.rare_why).map(v=>label('rare_why',v)), r.never_why?label('never_why',r.never_why):''].filter(Boolean).slice(0,2).join(', ');
+    return `<tr><td class="nowrap">${esc(r.name)}</td><td><a class="num" href="tel:+${esc(r.phone)}">${fmtPhone(r.phone)}</a></td><td>${st}</td>
+      <td>${r.status==='completed'?dash:esc(qname(r.last_step||'contact'))}</td>
+      <td class="nowrap">${r.visit?esc(label('visit',r.visit)):dash}</td>
+      <td class="num">${has(r.rating)?r.rating:dash}</td><td class="num">${has(r.nps)?r.nps:dash}</td>
+      <td>${pain?esc(pain):dash}</td><td>${disc}</td><td class="num nowrap muted">${fmtDate(r.updated_at,true)}</td></tr>`;
+  }).join('') : `<tr><td colspan="10" class="empty">${T(I.empty)}</td></tr>`;
+}
+$('#pFilter').onclick = e => { const b=e.target.closest('button'); if(!b) return; pf=b.dataset.f; renderPeople(); };
+$('#pSearch').oninput = renderPeople;
+$('#csv').onclick = () => {
+  const rows=peopleRows(); if(!rows.length) return;
+  const keys=Object.keys(rows[0]);
+  const csv='﻿'+[keys.join(';'), ...rows.map(r=>keys.map(k=>`"${String(r[k]??'').replace(/"/g,'""')}"`).join(';'))].join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='qfc-custdev-'+fmtDate(new Date())+'.csv'; a.click();
+};
+
+function applyLang(){
+  document.querySelectorAll('[data-t]').forEach(el=>el.textContent=T(I[el.dataset.t]));
+  $('#pSearch').placeholder=T(I.search); $('#langBtn').textContent=L==='kk'?'РУС':'ҚАЗ'; $('#demoBar').textContent=T(I.demo);
+  document.documentElement.lang=L;
+}
+document.querySelectorAll('nav button').forEach(b=> b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  ['stats','people'].forEach(t=>$('#tab-'+t).classList.toggle('hide', t!==b.dataset.tab));
+  ls.set('qfc_admin_tab', b.dataset.tab); window.scrollTo({top:0});
+});
+$('#langBtn').onclick = () => { L=L==='kk'?'ru':'kk'; ls.set('qfc_admin_lang',L); applyLang(); renderAll(); };
+$('#refresh').onclick = () => load().then(()=>toast('✓'));
+$('#logout').onclick = () => { ls.del('qfc_admin_key'); location.reload(); };
+function showLogin(err){ $('#appView').classList.add('hide'); $('#loginView').classList.remove('hide'); if(err) toast(T(I.bad)); }
+$('#loginBtn').onclick = () => { ls.set('qfc_admin_key', $('#key').value.trim()); start(); };
+$('#key').onkeydown = e => { if(e.key==='Enter') $('#loginBtn').click(); };
+async function start(){
+  $('#loginView').classList.add('hide'); $('#appView').classList.remove('hide');
+  const tab=ls.get('qfc_admin_tab'); const b=tab && document.querySelector(`nav [data-tab="${tab}"]`); if(b) b.click();
+  try{ await load(); }catch(e){ showLogin(true); }
+}
+applyLang();
+if(DEMO){ $('#demoBar').classList.remove('hide'); start(); }
+else if(ls.get('qfc_admin_key')) start(); else showLogin();
+setInterval(()=>{ if(!DEMO && !$('#appView').classList.contains('hide') && document.visibilityState==='visible') load().catch(()=>{}); }, 60000);
+
+function demoRows(){
+  const names=['Айгерім','Нұрлан','Дана','Ерлан','Аружан','Мадина','Азамат','Әсел','Данияр','Жансая','Ильяс','Камила','Тимур','Алия','Бекзат','Сабина','Арман','Томирис','Руслан','Гүлназ'];
+  let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647; const pick=a=>a[Math.floor(rnd()*a.length)];
+  const stories=['Стрипс суық келді, 40 минут күттім','Кассир тапсырысты шатастырды, соус бермеді','Бургер тым майлы болды','Телефонды ұзақ көтермеді, 3 рет шалдым','Фри жұмсақ болып келді','Порция кішірейіп кеткен сияқты'];
+  const ideas=['Түнгі уақытта жұмыс істесе','Ащы қанаттар қосу керек','Студенттерге жеңілдік','Тезірек беріңдер, дәмі керемет','Бизнес-ланч керек','Балалар мәзірі болса отбасымен келер едім','Дәмі KFC-тен жақсы, бірақ кезек ұзақ'];
+  const rows=[];
+  for(let i=0;i<64;i++){
+    const A={_name:''}, path=[]; let q=Q.find(x=>!x.when||x.when(A));
+    while(q){ path.push(q.id);
+      if(q.type==='single') A[q.id]=pick(q.o)[0];
+      else if(q.type==='multi') A[q.id]=[...new Set(Array.from({length:1+Math.floor(rnd()*2)},()=>pick(q.o)[0]))];
+      else if(q.type==='rating') A[q.id]=pick([2,3,4,4,5,5,5]);
+      else if(q.type==='nps') A[q.id]=pick([3,5,6,7,8,8,9,9,10,10]);
+      else if(q.type==='text') A[q.id]=rnd()<.6?(q.id.startsWith('pain')?pick(stories):pick(ideas)):undefined;
+      q=Q.slice(Q.indexOf(q)+1).find(x=>!x.when||x.when(A)); }
+    const completed=rnd()<.74, cut=completed?path.length:Math.floor(rnd()*path.length), keep=path.slice(0,cut);
+    const t=new Date(Date.now()-rnd()*13*864e5);
+    const r={ session:'demo'+i, status:completed?'completed':(cut?'in_progress':'started'), started_at:t.toISOString(), updated_at:new Date(t.getTime()+150e3).toISOString(),
+      name:pick(names), phone:'770'+String(10000000+Math.floor(rnd()*89999999)), step_no:cut, last_step:completed?'age':(path[cut]||'contact'),
+      seconds:90+Math.floor(rnd()*180), pin:completed?String(1000+Math.floor(rnd()*9000)):'', expires:completed?new Date(t.getTime()+30*864e5).toISOString():'',
+      used:completed&&rnd()<.35?'yes':'', used_at:'' };
+    keep.forEach(id=>{ const v=A[id]; r[id]=v===undefined?'':(Array.isArray(v)?v.join(', '):v); });
+    if(r.alt==='other') r.alt_other=pick(['Burger King','Үйде','Магнум кафе','Шаурма']);
+    if(r.used) r.used_at=r.updated_at;
+    rows.push(r);
+  }
+  return rows;
+}
+</script>
+</body>
+</html>
